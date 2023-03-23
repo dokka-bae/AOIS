@@ -1,3 +1,6 @@
+from constants import *
+
+
 class binary_number:
     def __init__(self):
         self.__number: str = ""
@@ -57,20 +60,6 @@ class binary_number:
             temp.__view = 0
         return temp
 
-    def circular_shift_left(self):
-        temp = ""
-        for bit in self.__number[2:]:
-            temp += bit
-        temp = self.__number[0] + temp + "0"
-        self.__number = temp
-
-    def circular_shift_right(self):
-        temp = ""
-        for bit in self.__number[:1]:
-            temp += bit
-        temp = "0" + temp
-        self.__number = temp
-
     def decimal_to_bin(self, number):
         self.__sign = number >= 0
         number = abs(number)
@@ -78,7 +67,7 @@ class binary_number:
         while number > 0:
             self.__number += str(number % 2)
             number //= 2
-        self.__number = self.__number[::-1].zfill(16)
+        self.__number = self.__number[::-1].zfill(BINARY_NUMBER_SIZE)
         if not self.__sign:
             self.additional()
 
@@ -96,9 +85,9 @@ class binary_number:
     def bin_sum(self, object):
         result = binary_number()
         carry = 0
-        self.__number = self.__number.zfill(16)
-        object.__number = object.__number.zfill(16)
-        for i in range(1, 16):
+        self.__number = self.__number.zfill(BINARY_NUMBER_SIZE)
+        object.__number = object.__number.zfill(BINARY_NUMBER_SIZE)
+        for i in range(1, BINARY_NUMBER_SIZE):
             sum = carry + int(self.__number[-i]) + int(object.__number[-i])
             if sum == 0:
                 result.__number += "0"
@@ -139,12 +128,6 @@ class binary_number:
             result.__sign = False
             result.additional()
         return result
-
-    def div_assist_function(self, object):  # определение количества битов для сдвига
-        for i in range(1, 16):
-            if self.__number[-i] == "1":
-                return 15 + i
-        return 0
 
     def bin_div(self, object):
         number_1 = self.abs()
@@ -224,7 +207,7 @@ class float_bin_number:
         return False, result
 
     def bin_to_decimal(self):  # way - True = exponent way - False = mantiss
-        number = self.__float_number[1:9]
+        number = self.__float_number[PARSING_CONST_SIGN:PARSING_CONST_EXPONENT]
         exponent = 0
         for i in range(0, len(number)):
             exponent += int(number[i]) * 2 ** (7 - i)
@@ -235,34 +218,34 @@ class float_bin_number:
         return (
             ((-1) ** int(self.__float_number[0]))
             * (1 + mantiss)
-            * 2 ** (exponent - 127)
+            * 2 ** (exponent - BASE_EXPONENT)
         )
 
-    def get_mantiss(self, intPart, realPart):
+    def get_mantiss(self, int_part, real_part):
         result = ""
-        if intPart.find("1") != -1:
-            pos = intPart.find("1")
-            result = intPart[pos + 1 :] + realPart
-            result = result[:23]
-            return (len(intPart) - pos - 1), result
+        if int_part.find("1") != -1:
+            pos = int_part.find("1")
+            result = int_part[pos + 1 :] + real_part
+            result = result[:MANTISS_SIZE]
+            return (len(int_part) - pos - 1), result
         else:
-            pos = realPart.find("1")
-            result = realPart[pos + 1 :]
-            result = result[:23]
+            pos = real_part.find("1")
+            result = real_part[pos + 1 :]
+            result = result[:MANTISS_SIZE]
             return -(pos + 1), result
 
     def get_exponent(self, number):
         exponent = binary_number()
-        exponent.decimal_to_bin(127)
+        exponent.decimal_to_bin(BASE_EXPONENT)
         shift = binary_number()
         shift.decimal_to_bin(number)
-        exponentShift = exponent.bin_sum(shift)
-        result = exponentShift.number[7:]
+        exponent_shift = exponent.bin_sum(shift)
+        result = exponent_shift.number[7:]
         return result
 
-    def get_float_number(self, intPart, realPart):
-        exponentShift, result = self.get_mantiss(intPart, realPart)
-        exponent = self.get_exponent(exponentShift)
+    def get_float_number(self, int_part, real_part):
+        exponent_shift, result = self.get_mantiss(int_part, real_part)
+        exponent = self.get_exponent(exponent_shift)
         return exponent + result
 
     def decimal_to_float_bin(self, number):
@@ -270,9 +253,9 @@ class float_bin_number:
         if number > 0:
             sign = "0"
         number = abs(number)
-        intPart = self.get_int_part(int(number))
-        realPart = self.get_real_part(number - int(number))
-        self.__float_number = sign + self.get_float_number(intPart, realPart)
+        int_part = self.get_int_part(int(number))
+        real_part = self.get_real_part(number - int(number))
+        self.__float_number = sign + self.get_float_number(int_part, real_part)
         return self.__float_number
 
     def float_bin_to_decimal(self):
@@ -280,9 +263,9 @@ class float_bin_number:
 
     def first_exponent_greater(self, object, exponent_1, exponent_2):
         sign = self.__float_number[0]
-        exponent__1 = self.__float_number[1:9]
-        mantiss__1 = self.__float_number[9:]
-        mantiss__2 = object.__float_number[9:]
+        exponent__1 = self.__float_number[PARSING_CONST_SIGN:PARSING_CONST_EXPONENT]
+        mantiss__1 = self.__float_number[PARSING_CONST_EXPONENT:]
+        mantiss__2 = object.__float_number[PARSING_CONST_EXPONENT:]
         _range = exponent_1 - exponent_2
         mantiss__2 = "1" + mantiss__2[:-1]
         shift = ""
@@ -295,14 +278,14 @@ class float_bin_number:
             exponent_1 += 1
             temp_exponent = binary_number()
             temp_exponent.decimal_to_bin(exponent_1)
-            return sign + temp_exponent.number[8:] + "0" + mantiss__2[1:]
+            return sign + temp_exponent.number[EXPONENT_SIZE:] + "0" + mantiss__2[1:]
         return sign + exponent__1 + mantiss__2[1:]
 
     def second_exponent_greater(self, object, exponent_1, exponent_2):
         sign = self.__float_number[0]
-        exponent__2 = self.__float_number[1:9]
-        mantiss__2 = self.__float_number[9:]
-        mantiss__1 = object.__float_number[9:]
+        exponent__2 = self.__float_number[PARSING_CONST_SIGN:PARSING_CONST_EXPONENT]
+        mantiss__2 = self.__float_number[PARSING_CONST_EXPONENT:]
+        mantiss__1 = object.__float_number[PARSING_CONST_EXPONENT:]
         _range = exponent_2 - exponent_1
         mantiss__1 = "1" + mantiss__1[:-1]
         shift = ""
@@ -315,26 +298,25 @@ class float_bin_number:
             exponent_2 += 1
             temp_exponent = binary_number()
             temp_exponent.decimal_to_bin(exponent_2)
-            return sign + temp_exponent.number[8:] + "0" + mantiss__1[1:]
+            return sign + temp_exponent.number[EXPONENT_SIZE:] + "0" + mantiss__1[1:]
         return sign + exponent__2 + mantiss__1
 
     def exponents_equals(self, object, exponent_1, exponent_2):
         sign = self.__float_number[0]
         mantiss__2 = self.__float_number[9:]
         mantiss__1 = object.__float_number[9:]
-        exponent__1 = self.__float_number[1:9]
         shifted, mantiss__1 = self.bin_sim(mantiss__2, mantiss__1, 0)
         temp_exponent__1 = binary_number()
         temp_exponent__1.decimal_to_bin(exponent_1 + 1)
-        temp_exponent_1 = temp_exponent__1.number[8:]
+        temp_exponent_1 = temp_exponent__1.number[EXPONENT_SIZE:]
         if shifted:
             return sign + temp_exponent_1 + "1" + mantiss__1[1:]
         else:
             return sign + temp_exponent_1 + "0" + mantiss__1[1:]
 
     def float_bin_sum(self, object):
-        exponent__1 = self.__float_number[1:9]
-        exponent__2 = object.__float_number[1:9]
+        exponent__1 = self.__float_number[PARSING_CONST_SIGN:PARSING_CONST_EXPONENT]
+        exponent__2 = object.__float_number[PARSING_CONST_SIGN:PARSING_CONST_EXPONENT]
         exponent_1 = 0
         for i in range(0, len(exponent__1)):
             exponent_1 += int(exponent__1[i]) * 2 ** (7 - i)
