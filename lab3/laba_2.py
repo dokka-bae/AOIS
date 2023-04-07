@@ -80,7 +80,8 @@ def get_sknf(truth_table, variables):
             result.append("+")
         result.pop()
         result.append(")")
-    return result
+        result.append("*")
+    return result[:-1]
 
 
 def get_dex_form(truth_table):
@@ -109,9 +110,10 @@ def get_sdnf(truth_table, variables):
                 result.append(f"!{variables[i]}")
             else:
                 result.append(str(variables[i]))
+            result += "*"
+        result.pop()
         result += ")+"
-    result.pop()
-    return result
+    return result[:-1]
 
 
 def get_index_form(truth_table):
