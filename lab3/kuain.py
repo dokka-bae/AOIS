@@ -16,12 +16,12 @@ def first_method(expr, is_sknf):
         return elements
     for i in range(len(elements)):
         elements[i] = elements[i].split(ch_1)
-    result, temp = get_cluid_form(elements)
-    extra = temp.copy()
+    result, buffer_for_extra = get_cluid_form(elements)
+    extra = buffer_for_extra.copy()
     while len(result) != 0:
-        result, temp = get_cluid_form(result)
-        if len(temp) != 0:
-            extra += temp
+        result, buffer_for_extra = get_cluid_form(result)
+        if len(buffer_for_extra) != 0:
+            extra += buffer_for_extra
     for i in range(len(extra)):
         extra[i] = "".join(extra[i])
     return delete_excess_implicants(set(extra), is_sknf)
@@ -34,20 +34,21 @@ def get_cluid_form(implicants):
     for i in range(len(implicants)):
         for j in range(i + 1, len(implicants)):
             count = 0
-            not_find_element = ""
+            not_find_element = []
             for k in range(len(implicants[i])):
                 if implicants[i][k] in implicants[j]:
                     count += 1
                 elif (implicants[i][k] == "!" + implicants[j][k]) or (
                     implicants[j][k] == "!" + implicants[i][k]
                 ):
-                    not_find_element = implicants[i][k]
+                    not_find_element.append(implicants[i][k])
             if count == len(implicants[0]) - 1 and not_find_element != "":
-                not_used[i] = 1
-                not_used[j] = 1
-                temp = implicants[i].copy()
-                temp.remove(not_find_element)
-                result.append(temp)
+                for element in not_find_element:
+                    not_used[i] = 1
+                    not_used[j] = 1
+                    buffer_implicants_for_removing = implicants[i].copy()
+                    buffer_implicants_for_removing.remove(element)
+                    result.append(buffer_implicants_for_removing)
     for i in range(len(not_used)):
         if not_used[i] == 0:
             extra.append(implicants[i])
@@ -63,11 +64,13 @@ def get_normal_form(expr, is_sknf):
     for i in range(len(expr)):
         expr[i] = list(expr[i])
     for i in range(len(expr)):
-        for j in range(len(expr[i]) - 1):
+        j = 0
+        while j < len(expr[i]) - 1:
             if expr[i][j].isalpha() and expr[i][j + 1].isalpha():
                 expr[i].insert(j + 1, ch_1)
             elif expr[i][j + 1] == "!" and expr[i][j].isalpha():
                 expr[i].insert(j + 1, ch_1)
+            j += 1
     for i in range(len(expr)):
         expr[i] = "".join(expr[i])
     result = "(" + f"){ch_2}(".join(expr) + ")"
@@ -85,14 +88,15 @@ def delete_excess_implicants(expr, is_sknf):
     if len(expr_list) == 1:
         return "".join(expr_list)
     for i in range(len(expr_list)):
-        temp = expr_list.pop(i)
-        current_truth_table = laba_2.get_truth_table(laba_2.get_postfix(temp))
+        possible_excess_implicant = expr_list.pop(i)
+        current_truth_table = laba_2.get_truth_table(
+            laba_2.get_postfix(possible_excess_implicant)
+        )
         target = get_target_rows(current_truth_table, is_sknf)
-        var_vocublary = get_var_vocublary(temp, target)
-        equals = execute(expr_list, var_vocublary, ch_1)
-        if not equals:
-            excesses[i] = 1
-        expr_list.insert(i, temp)
+        var_vocublary = get_var_vocublary(possible_excess_implicant, target)
+        equals = execute(expr_list, var_vocublary, ch_1, is_sknf)
+        excesses[i] = 1
+        expr_list.insert(i, possible_excess_implicant)
     result = []
     for i, excesse in enumerate(excesses):
         if excesse == 1:
@@ -100,7 +104,7 @@ def delete_excess_implicants(expr, is_sknf):
     return ch_1.join(result)
 
 
-def execute(expr, var_vocublary, ch):
+def execute(expr, var_vocublary, ch, is_sknf):
     vars = get_vars("".join(expr))
     additional_vars = []
     for var in vars:
@@ -117,7 +121,10 @@ def execute(expr, var_vocublary, ch):
     second_result = laba_2.execute_logical_statement(
         laba_2.get_postfix(ch.join(expr)), var_vocublary
     )
-    return first_result == second_result
+    target = bool(is_sknf)
+    if first_result or second_result == target:
+        return True
+    return False
 
 
 def get_var_vocublary(expr, table):
@@ -154,17 +161,13 @@ def get_vars(expr):
     return sorted(variables)
 
 
-expr = "(a+b)*c"
+"""
+expr = "(a+b+c+d)*(!a+b+c+d)*(!a+!b+c+d)"
 
 truth_table = laba_2.get_truth_table(laba_2.get_postfix(expr))
 sknf_expr = "".join(laba_2.get_sknf(truth_table, laba_2.variables))
 sdnf_expr = "".join(laba_2.get_sdnf(truth_table, laba_2.variables))
 truth_table = get_normal_truth_table(truth_table)
 
-expr = "(!a*!b*c)+(!a*b*!c)+(!a*b*c)+(a*b*!c)"
-expr = "(a+b+c)*(!a+b+c)*(!a+b+!c)*(!a+!b+!c)"
-expr = "(!a*!b*c)+(!a*b*!c)+(!a*b*c)+(a*b*c)"
-expr = "(!a*!b*c)+(!a*b*!c)+(a*!b*c)+(a*b*c)"
-
 print("First Method SKNF: ", first_method(sknf_expr, True))
-print("First Method SDNF: ", first_method(sdnf_expr, False))
+print("First Method SDNF: ", first_method(sdnf_expr, False))"""

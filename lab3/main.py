@@ -73,10 +73,10 @@ def get_star_second_group_table(table):
         for j in range(len(table[i]) - 1):
             for k in range(len(table[i][j])):
                 if table[i][j][k] != table[i][j + 1][k]:
-                    temp = table[i][j]
-                    temp[k] = "*"
-                    if temp not in result:
-                        result.append(temp)
+                    temp_table = table[i][j]
+                    temp_table[k] = "*"
+                    if temp_table not in result:
+                        result.append(temp_table)
     return result
 
 
@@ -249,12 +249,12 @@ def get_quadros(karnaugh_map, karnaugh_map_used_elements, target_symbol):
                     karnaugh_map_used_elements[0][j - 1] == "0"
                     and karnaugh_map_used_elements[1][j - 1] == "0"
                 ):
-                    temp = []
-                    temp.append([0, j - 1])
-                    temp.append([1, j - 1])
-                    temp.append([0, j])
-                    temp.append([1, j])
-                    coordinats.append(temp.copy())
+                    buffer_for_coordinats = []
+                    buffer_for_coordinats.append([0, j - 1])
+                    buffer_for_coordinats.append([1, j - 1])
+                    buffer_for_coordinats.append([0, j])
+                    buffer_for_coordinats.append([1, j])
+                    coordinats.append(buffer_for_coordinats.copy())
                     karnaugh_map_used_elements[0][j - 1] = "1"
                     karnaugh_map_used_elements[1][j - 1] = "1"
                     karnaugh_map_used_elements[0][j] = "1"
@@ -264,8 +264,8 @@ def get_quadros(karnaugh_map, karnaugh_map_used_elements, target_symbol):
             if karnaugh_map[i][0] == target_symbol:
                 if len(set(karnaugh_map_used_elements[i])) == 2:
                     karnaugh_map_used_elements[i][1] = "1"
-                    temp = [[i, 0], [i, 1], [i, 2], [i, 3]]
-                    coordinats.append(temp)
+                    buffer_for_coordinats = [[i, 0], [i, 1], [i, 2], [i, 3]]
+                    coordinats.append(buffer_for_coordinats)
     return coordinats
 
 
@@ -297,10 +297,10 @@ def get_horizontal_hor_pair(
                     karnaugh_map_used_elements[i][j] == "0"
                     and karnaugh_map_used_elements[i][j - 1] == "0"
                 ):
-                    temp = []
-                    temp.append([i, j])
-                    temp.append([i, j - 1])
-                    pairs_coordinats.append(temp.copy())
+                    buffer_for_coordinats = []
+                    buffer_for_coordinats.append([i, j])
+                    buffer_for_coordinats.append([i, j - 1])
+                    pairs_coordinats.append(buffer_for_coordinats.copy())
                     karnaugh_map_used_elements[i][j] = "1"
                     karnaugh_map_used_elements[i][j - 1] = "1"
     get_horizontal_hor_or_pair(
@@ -322,10 +322,10 @@ def get_horizontal_hor_or_pair(
                     karnaugh_map_used_elements[i][j] == "0"
                     or karnaugh_map_used_elements[i][j - 1] == "0"
                 ):
-                    temp = []
-                    temp.append([i, j])
-                    temp.append([i, j - 1])
-                    pairs_coordinats.append(temp.copy())
+                    buffer_for_coordinats = []
+                    buffer_for_coordinats.append([i, j])
+                    buffer_for_coordinats.append([i, j - 1])
+                    pairs_coordinats.append(buffer_for_coordinats.copy())
                     karnaugh_map_used_elements[i][j] = "1"
                     karnaugh_map_used_elements[i][j - 1] = "1"
 
